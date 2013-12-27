@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.firsthuanya.financeInsu.data.PolicyMapper">
+  <!-- cache / -->              
+  <insert id="insert" parameterType="com.firsthuanya.financeInsu.domain.Policy">
+    insert into policy 
+    	(policy_no,broker_no,premium,cost,insurance_company,insured,
+    	factorage_rate,factorage,insurance_type,invoice_no,date_m,import_date) 
+	values
+		(#{policyNo},#{brokerNo},#{premium},#{cost},#{insuranceCompany},#{insured},
+		#{factorageRate},#{factorage},#{insuranceType},#{invoiceNo},#{inputDate},#{importDate})
+
+  </insert>
+  
+  <select id="countPolicies" resultType="int">
+    select count(*)
+    from policy where policy_no in
+    <foreach item="policy" index="index" collection="list" open="(" separator="," close=")">
+      #{policy.policyNo}
+    </foreach>
+  </select>
+
+  <select id="count" parameterType="string" resultType="int">
+    select count(*) from policy where policy_no=#{policyNo}
+  </select>
+  
+  <!-- 三表连接 -->
+  <!--  select * from (policy a left join remark b on a.policy_no = b.policy_no) left join settlement c on a.policy_no=c.policy_no -->
+
+  <select id="findPolicies" parameterType="map" resultMap="policyResult">
+	select 
+	  a.policy_no as policy_no,
+	  a.broker_no as broker_no,
+	  a.premium as premium,
+	  a.cost as cost,
+	  a.insurance_company as insurance_company, 
+	  a.insured as insured,
+	  a.factorage_rate as factorage_rage,
+	  a.factorage as factorage,
+	  a.insurance_type as insurance_type,
+	  a.invoice_no as invoice_no,
+	  a.date_m as input_date,
+	  a.import_date as import_date,
+	  b.operation_date as remark_date,
+	  b.operator as remark_operator_id,
+	  d.name as remark_operator_name,
+	  d.password as remark_operator_password,
+	  c.operation_date as settlement_date,
+	  c.operator as settlement_operator_id,
+	  e.name as settlement_operator_name,
+	  e.password as settlement_operator_password
+	FROM 
+	  policy a LEFT OUTER JOIN remark b ON a.policy_no = b.policy_no 
+	  LEFT OUTER JOIN settlement c ON a.policy_no = c.policy_no 
+	  LEFT OUTER JOIN user_info d ON b.operator = d.ID 
+	  LEFT OUTER JOIN user_info e ON c.operator = e.ID
+    where 1=1 
+    <if test="policyNo != null">
+      and a.policy_no like #{policyNo}
+    </if>
+    <if test="brokerNo != null">
+      and a.broker_no=#{brokerNo}
+    </if>
+    <if test="insured != null">
+      and a.insured like #{insured}
+    </if>
+    <if test="inputDateFrom != null">
+      and a.date_m&gt;=#{inputDateFrom,javaType=date}
+    </if>
+    <if test="inputDateTo != null"> 
+      and a.date_m&lt;#{inputDateTo,javaType=date}
+    </if>    
+    <choose>
+      <when test="remarkScope == null"></when>
+      <when test="remarkScope.name().equals('REMARKED')">
+        and b.policy_no is not null
+      </when>
+      <when test="remarkScope.name().equals('UNREMARKED')">
+        and b.policy_no is null
+      </when>
+    </choose>
+    <choose>
+      <when test="settlementScope == null"></when>
+      <when test="settlementScope.name().equals('SETTLED')">
+        and c.policy_no is not null 
+      </when>
+      <when test="settlementScope.name().equals('UNSETTLED')">
+        and c.policy_no is null 
+      </when>
+    </choose>
+  </select>
+
+  <select id="countPoliciesByCondition" parameterType="map" resultType="int">
+	select count(*)
+	FROM 
+	  policy a LEFT OUTER JOIN remark b ON a.policy_no = b.policy_no 
+	  LEFT OUTER JOIN settlement c ON a.policy_no = c.policy_no 
+	  LEFT OUTER JOIN user_info d ON b.operator = d.ID 
+	  LEFT OUTER JOIN user_info e ON c.operator = e.ID
+    where 1=1 
+    <if test="policyNo != null">
+      and a.policy_no like #{policyNo}
+    </if>
+    <if test="brokerNo != null">
+      and a.broker_no=#{brokerNo}
+    </if>
+    <if test="insured != null">
+      and a.insured like #{insured}
+    </if>
+    <if test="inputDateFrom != null">
+      and a.date_m&gt;=#{inputDateFrom,javaType=date}
+    </if>
+    <if test="inputDateTo != null"> 
+      and a.date_m&lt;#{inputDateTo,javaType=date}
+    </if>    
+    <choose>
+      <when test="remarkScope == null"></when>
+      <when test="remarkScope.name().equals('REMARKED')">
+        and b.policy_no is not null
+      </when>
+      <when test="remarkScope.name().equals('UNREMARKED')">
+        and b.policy_no is null
+      </when>
+    </choose>
+    <choose>
+      <when test="settlementScope == null"></when>
+      <when test="settlementScope.name().equals('SETTLED')">
+        and c.policy_no is not null 
+      </when>
+      <when test="settlementScope.name().equals('UNSETTLED')">
+        and c.policy_no is null 
+      </when>
+    </choose>
+  </select>
+
+  <resultMap id="policyResult" type="com.firsthuanya.financeInsu.domain.FinancePolicy">	
+    <id property="policyNo" column="policy_no"></id>
+    <result property="brokerNo" column="broker_no"></result>
+    <result property="premium" column="premium"></result>
+    <result property="cost" column="cost"></result>
+    <result property="insuranceCompany" column="insurance_company"></result>
+    <result property="insured" column="insured"></result>
+    <result property="inputDate" column="input_date"></result>
+    <result property="factorage" column="factorage"></result>
+    <result property="factorageRate" column="factorage_rate"></result>
+    <result property="insuranceType" column="insurance_type"></result>
+    <result property="invoiceNo" column="invoice_no"></result>
+    <result property="importDate" column="import_date"></result>    
+    <association property="remarkInfo" javaType="com.firsthuanya.financeInsu.domain.RemarkInfo">
+	  <result property="operationDate" column="remark_date"></result>
+	  <association property="operator" javaType="com.firsthuanya.financeInsu.domain.User">
+	    <id property="id" column="remark_operator_id"></id>
+	    <result property="name" column="remark_operator_name"></result>
+	    <result property="password" column="remark_operator_password"></result>
+	  </association>
+    </association>
+    <association property="settlementInfo" javaType="com.firsthuanya.financeInsu.domain.SettlementInfo">
+	  <result property="operationDate" column="settlement_date"></result>
+	  <association property="operator" javaType="com.firsthuanya.financeInsu.domain.User">
+	  	<id property="id" column="settlement_operator_id"></id>
+	    <result property="name" column="settlement_operator_name"></result>
+	    <result property="password" column="settlement_operator_password"></result>
+	  </association>
+    </association>
+  </resultMap>
+</mapper>

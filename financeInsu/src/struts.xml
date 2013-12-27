@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<constant name="struts.devMode" value="false" />
+	<constant name="struts.multipart.maxSize" value="20971520" /> <!-- 设置每次上传文件的最大值为20M,默认值为2M -->
+		
+	<package name="financeInsu" extends="struts-default">		
+		<interceptors>
+			<interceptor name="cacheClearInterceptor" class="com.firsthuanya.financeInsu.action.CacheClearInterceptor"></interceptor>
+			<interceptor name="authorizationInterceptor" class="com.firsthuanya.financeInsu.action.AuthorizationInterceptor"></interceptor>
+			
+			<interceptor-stack name="financeInsuStack">
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<interceptor-ref name="authorizationInterceptor">
+					<param name="excludeMethods">login,logout</param>
+				</interceptor-ref>
+				<interceptor-ref name="cacheClearInterceptor">
+					<!-- param name="includeMethods">logout</param-->
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+
+		<default-interceptor-ref name="financeInsuStack"></default-interceptor-ref>
+
+		<global-results>
+			<result name="login">/expiredLogin.html</result>
+		</global-results>				 
+				                                                               
+		<action name="login" class="com.firsthuanya.financeInsu.action.LoginAction" method="login">
+			<exception-mapping result="exception" exception="java.lang.Exception" />			
+			<result name="input">/login.jsp</result>
+			<result name="success">/main.jsp</result>
+			<result name="exception">/exception.jsp</result>
+		</action>
+		
+		<action name="logout" class="com.firsthuanya.financeInsu.action.LogoutAction" method="logout">
+			<result name="success">/logout.html</result>
+		</action>
+		
+
+	</package>
+	
+	<package name="financeInsuJson" extends="json-default">
+		<interceptors>
+			<interceptor name="cacheClearInterceptor" class="com.firsthuanya.insu.action.CacheClearInterceptor"></interceptor>
+			<interceptor name="authorizationInterceptor" class="com.firsthuanya.insu.action.AuthorizationInterceptor"></interceptor>
+			
+			<interceptor-stack name="financeInsuStack">
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<interceptor-ref name="authorizationInterceptor">
+					<param name="excludeMethods">login,logout</param>
+				</interceptor-ref>
+				<interceptor-ref name="cacheClearInterceptor">
+					<!-- param name="includeMethods">logout</param-->
+				</interceptor-ref>
+			</interceptor-stack>		
+		</interceptors>
+
+		<default-interceptor-ref name="financeInsuStack"></default-interceptor-ref>
+
+		<global-results>
+			<result name="login">/expiredLogin.html</result>
+		</global-results>
+		
+		<action name="queryPolicy" class="com.firsthuanya.financeInsu.action.PolicyQueryAction" method="queryPolicy">
+			<result type="json">
+				<param name="root">results</param>
+				<!--param name="noCache">true</param-->			
+				<!-- param name="includeProperties">results.*\.policyNo</param-->				
+			</result>		
+		</action>
+		              
+		<action name="queryUnremarkedPolicy" class="com.firsthuanya.financeInsu.action.UnremarkedPolicyQueryAction" method="queryPolicy">
+			<result type="json">
+				<param name="root">results</param>
+				<!--param name="noCache">true</param-->			
+				<!-- param name="includeProperties">results.*\.policyNo</param-->				
+			</result>		
+		</action>
+		
+		<action name="queryUnsettledPolicy" class="com.firsthuanya.financeInsu.action.UnsettledPolicyQueryAction" method="queryPolicy">
+			<result type="json">
+				<param name="root">results</param>
+				<!--param name="noCache">true</param-->			
+				<!-- param name="includeProperties">results.*\.policyNo</param-->				
+			</result>		
+		</action>
+		
+		<action name="importPolicies" class="com.firsthuanya.financeInsu.action.ImportPoliciesAction" method="execute">
+			<result type="json">
+				<param name="contentType">text/html</param>
+			</result>
+		</action>
+		
+		<action name="remark" class="com.firsthuanya.financeInsu.action.RemarkAction" method="execute">
+			<result type="json"></result>
+		</action>
+		
+		<action name="settle" class="com.firsthuanya.financeInsu.action.SettlementAction" method="execute">
+			<result type="json"></result>
+		</action>
+	</package>
+</struts>

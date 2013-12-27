@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.firsthuanya.financeInsu.data.SettlementMapper">
+  <!-- cache / -->              
+  <insert id="insert" parameterType="com.firsthuanya.financeInsu.domain.FinancePolicy">
+    insert into settlement 
+    	(policy_no,operation_date,operator) 
+	values
+		(#{policyNo},#{settlementInfo.operationDate},#{settlementInfo.operator.id})
+  </insert>
+
+  <select id="count" parameterType="string" resultType="int">
+    select count(*) from settlement where policy_no=#{policyNo}
+  </select>
+</mapper>
